@@ -316,7 +316,13 @@ function probeDuration(audioPath) {
   });
 }
 
-function buildChunksForLine(text, globalStart, globalEnd, revealSeconds) {
+function buildChunksForLine(
+  text,
+  globalStart,
+  globalEnd,
+  revealSeconds,
+  wordsPerState
+) {
   const tokens = tokenize(text);
   const mainTokens = tokens.filter((t) => !t.isAdlib).map((t) => t.text);
   const adlibTokens = tokens.filter((t) => t.isAdlib).map((t) => t.text);
@@ -324,12 +330,22 @@ function buildChunksForLine(text, globalStart, globalEnd, revealSeconds) {
   const chunks = [];
 
   if (mainTokens.length) {
-    const perStep = Math.min(revealSeconds, duration / mainTokens.length);
-    for (let i = 0; i < mainTokens.length; i++) {
-      const cumulativeText = mainTokens.slice(0, i + 1).join(" ");
+    // Build cumulative reveal states: each state reveals wordsPerState more words.
+    const states = [];
+    for (let i = wordsPerState; i < mainTokens.length; i += wordsPerState) {
+      states.push(i);
+    }
+    if (!states.length || states[states.length - 1] !== mainTokens.length) {
+      states.push(mainTokens.length); // ensure the final full line is shown
+    }
+
+    const perStep = Math.min(revealSeconds, duration / states.length);
+    for (let i = 0; i < states.length; i++) {
+      const wordCount = states[i];
+      const cumulativeText = mainTokens.slice(0, wordCount).join(" ");
       const start = globalStart + i * perStep;
       const end =
-        i < mainTokens.length - 1
+        i < states.length - 1
           ? globalStart + (i + 1) * perStep
           : globalEnd;
       chunks.push({
@@ -358,9 +374,29 @@ function buildChunksForLine(text, globalStart, globalEnd, revealSeconds) {
   return chunks;
 }
 
+// Choose how many words to reveal per cumulative state so that the total chunk
+// count stays below the ffmpeg-safe budget. With too many inputs ffmpeg runs out
+// of decoder threads / file descriptors.
+const MAX_LYRIC_CHUNKS = 40;
+
+function computeWordsPerState(lines) {
+  const totalMainWords = lines.reduce((sum, l) => {
+    const t = l.translated || l.text;
+    return sum + tokenize(t).filter((tok) => !tok.isAdlib).length;
+  }, 0);
+  if (totalMainWords <= MAX_LYRIC_CHUNKS) return 1; // word-by-word
+  return Math.max(1, Math.ceil(totalMainWords / MAX_LYRIC_CHUNKS));
+}
+
 function buildChunks(lines, totalDuration, hasSynced, revealSeconds) {
   if (!lines.length) return [];
   const allChunks = [];
+  const wordsPerState = computeWordsPerState(lines);
+  if (wordsPerState > 1) {
+    console.log(
+      `[video] chunk budget: grouping ${wordsPerState} words per reveal state to stay under ${MAX_LYRIC_CHUNKS} chunks`
+    );
+  }
 
   if (hasSynced) {
     for (let i = 0; i < lines.length; i++) {
@@ -368,14 +404,22 @@ function buildChunks(lines, totalDuration, hasSynced, revealSeconds) {
       const start = l.time;
       const end = i < lines.length - 1 ? lines[i + 1].time : totalDuration;
       const text = l.translated || l.text;
-      allChunks.push(...buildChunksForLine(text, start, end, revealSeconds));
+      allChunks.push(
+        ...buildChunksForLine(text, start, end, revealSeconds, wordsPerState)
+      );
     }
   } else {
     const slice = totalDuration / lines.length;
     for (let i = 0; i < lines.length; i++) {
       const text = lines[i].translated || lines[i].text;
       allChunks.push(
-        ...buildChunksForLine(text, i * slice, (i + 1) * slice, revealSeconds)
+        ...buildChunksForLine(
+          text,
+          i * slice,
+          (i + 1) * slice,
+          revealSeconds,
+          wordsPerState
+        )
       );
     }
   }
@@ -586,26 +630,27 @@ export async function generateVideo({
   );
   const audioIdx = inputIdx++;
 
+  // Each image input spawns a decoder; forcing -threads 1 per input prevents
+  // thread explosion when we have many PNG inputs.
   let vinylIdx = -1;
   if (vinylPath) {
-    inputs.push("-loop", "1", "-i", vinylPath);
+    inputs.push("-threads", "1", "-loop", "1", "-i", vinylPath);
     vinylIdx = inputIdx++;
   }
 
   const noteIndices = [];
   for (const np of notePaths) {
-    inputs.push("-loop", "1", "-i", np);
+    inputs.push("-threads", "1", "-loop", "1", "-i", np);
     noteIndices.push(inputIdx++);
   }
 
-  // For each chunk we may have: sharp PNG (always), blur PNG (if motion blur)
   const lyricMeta = [];
   for (const { sharpPath, blurPath } of lyricPngs) {
-    inputs.push("-loop", "1", "-i", sharpPath);
+    inputs.push("-threads", "1", "-loop", "1", "-i", sharpPath);
     const sharpIdx = inputIdx++;
     let blurIdx = -1;
     if (blurPath) {
-      inputs.push("-loop", "1", "-i", blurPath);
+      inputs.push("-threads", "1", "-loop", "1", "-i", blurPath);
       blurIdx = inputIdx++;
     }
     lyricMeta.push({ sharpIdx, blurIdx });
