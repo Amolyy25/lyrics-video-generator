@@ -29,7 +29,7 @@ COPY frontend ./frontend
 
 EXPOSE 3000
 
-# Persist caches between runs if a volume is mounted at /app/backend/assets
-VOLUME ["/app/backend/assets", "/app/backend/outputs"]
+# On Railway: attach a volume via the UI (Settings → Volumes) on /app/backend/assets
+# to persist audio/cover/translations between deploys. outputs/ (mp4) is disposable cache.
 
 CMD ["node", "backend/index.js"]
