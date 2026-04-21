@@ -417,7 +417,13 @@ function shiftAndClipChunks(chunks, startOffset, clipDuration) {
 
 function runFfmpegRaw(args, timeoutMs = 900000) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(FFMPEG_PATH, args);
+    // On Linux, wrap in sh with ulimit bump so ffmpeg has enough file descriptors
+    // for pipelines with many PNG inputs (motion blur chunks). On other platforms,
+    // spawn directly.
+    const isLinux = process.platform === "linux";
+    const proc = isLinux
+      ? spawn("sh", ["-c", 'ulimit -n 65536 2>/dev/null; exec "$@"', "--", FFMPEG_PATH, ...args])
+      : spawn(FFMPEG_PATH, args);
     let stderr = "";
     const timer = setTimeout(() => {
       proc.kill("SIGKILL");
@@ -527,12 +533,26 @@ export async function generateVideo({
     notePaths.push(p);
   }
 
-  // 3. Lyric PNGs (one per chunk; animated chunks also get a blurred twin for motion blur)
+  // 3. Lyric PNGs (one per chunk; animated chunks also get a blurred twin for motion blur).
+  // Safety: each input = ~5-10 file descriptors inside ffmpeg. With hundreds of inputs
+  // we blow past the container's ulimit ("Resource temporarily unavailable"). If the
+  // projected stream count is too high, auto-disable motion blur (halves animated streams).
+  const projectedAnimCount = chunks.filter((c) => c.animate).length;
+  const projectedStreamCount =
+    1 /* audio */ + 1 /* vinyl */ + 4 /* notes */ + chunks.length + projectedAnimCount;
+  const STREAM_BUDGET = 80;
+  const allowMotionBlur = anim.motionBlur && projectedStreamCount <= STREAM_BUDGET;
+  if (!allowMotionBlur && anim.motionBlur) {
+    console.warn(
+      `[video] too many streams (${projectedStreamCount} > ${STREAM_BUDGET}) — disabling motion blur to avoid ffmpeg fd exhaustion`
+    );
+  }
+
   const lyricPngs = [];
   if (chunks.length) {
     const mainCount = chunks.filter((c) => c.kind === "main").length;
     const adlibCount = chunks.length - mainCount;
-    const animCount = chunks.filter((c) => c.animate).length;
+    const animCount = allowMotionBlur ? projectedAnimCount : 0;
     console.log(
       `[video] pre-rendering lyrics: ${mainCount} main + ${adlibCount} adlib (+${animCount} blur twins)`
     );
@@ -543,7 +563,7 @@ export async function generateVideo({
         adlib: c.kind === "adlib",
         color: colorName,
         glow: glowEnabled,
-        motionBlur: c.animate && anim.motionBlur,
+        motionBlur: c.animate && allowMotionBlur,
       });
       lyricPngs.push({ sharpPath, blurPath });
     }

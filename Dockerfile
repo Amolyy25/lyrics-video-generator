@@ -38,4 +38,5 @@ EXPOSE 3000
 # On Railway: attach a volume via the UI (Settings → Volumes) on /app/backend/assets
 # to persist audio/cover/translations between deploys. outputs/ (mp4) is disposable cache.
 
-CMD ["node", "backend/index.js"]
+# Raise open-file limit to support ffmpeg pipelines with many PNG inputs (motion blur chunks)
+CMD ["sh", "-c", "ulimit -n 65536 && node backend/index.js"]
