@@ -13,8 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3-pip \
       ca-certificates \
       curl \
+      unzip \
       fonts-dejavu-core \
   && rm -rf /var/lib/apt/lists/*
+
+# Install Deno (JS runtime required by newer yt-dlp for YouTube extraction)
+RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y \
+  && mv /root/.deno/bin/deno /usr/local/bin/deno \
+  && deno --version
 
 RUN pip3 install --break-system-packages --no-cache-dir yt-dlp \
   && yt-dlp --version

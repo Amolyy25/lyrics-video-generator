@@ -139,6 +139,15 @@ function pickBestCandidate(candidates, expected) {
   return scored[0] || null;
 }
 
+// Strip common store/platform suffixes that pollute YouTube search
+// e.g. "KYKY2BONDY - Single" → "KYKY2BONDY", "Song Name - Remastered 2011" → "Song Name"
+function cleanTrackTitle(title) {
+  return title
+    .replace(/\s*[-–—]\s*(Single|EP|Album|Deluxe|Remastered(?:\s+\d{4})?|Bonus\s*Track|Album\s*Version|Radio\s*Edit|Explicit|Clean)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function downloadFromYoutube(
   artist,
   title,
@@ -146,6 +155,11 @@ export async function downloadFromYoutube(
   { expectedDuration = null, durationTolerance = 10 } = {}
 ) {
   await ensureDirs();
+
+  const cleanedTitle = cleanTrackTitle(title);
+  if (cleanedTitle !== title) {
+    console.log(`[download] cleaned title: "${title}" → "${cleanedTitle}"`);
+  }
 
   const outTemplate = path.join(TMP_DIR, `${outputBase}.%(ext)s`);
   const hasExpected = expectedDuration && expectedDuration > 0;
@@ -161,7 +175,7 @@ export async function downloadFromYoutube(
   if (hasExpected) {
     // 1. Search 15 candidates unfiltered, then pick the closest by duration.
     //    This is more robust than --match-filter (which can drop decimals).
-    const query = `ytsearch15:${artist} ${title}`;
+    const query = `ytsearch15:${artist} ${cleanedTitle}`;
     console.log(`[download] query="${query}" (score = |Δduration| - topic/vevo bonus)`);
     const candidates = await searchCandidates(query, null);
 
@@ -202,7 +216,7 @@ export async function downloadFromYoutube(
 
   if (!picked) {
     // Fallback: plain "official audio" search, single result
-    const fbQuery = `ytsearch1:${artist} ${title} official audio`;
+    const fbQuery = `ytsearch1:${artist} ${cleanedTitle} official audio`;
     console.log(`[download] fallback query="${fbQuery}"`);
     const candidates = await searchCandidates(fbQuery, null);
     picked = candidates[0] || null;

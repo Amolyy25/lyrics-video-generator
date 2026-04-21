@@ -116,6 +116,18 @@ async function assetsExist(base) {
   }
 }
 
+// Railway volumes and Docker tmp live on different devices, so fs.rename fails
+// with EXDEV. Fall back to copy + unlink.
+async function moveFile(src, dest) {
+  try {
+    await fs.rename(src, dest);
+  } catch (err) {
+    if (err.code !== "EXDEV") throw err;
+    await fs.copyFile(src, dest);
+    await fs.unlink(src);
+  }
+}
+
 function logPipelineError(label, err) {
   const msg = err.message || "unknown error";
   const bar = "═".repeat(72);
@@ -169,7 +181,7 @@ async function acquireAssets(
   });
 
   // Move audio to persistent location
-  await fs.rename(tmpAudioPath, paths.audio);
+  await moveFile(tmpAudioPath, paths.audio);
 
   // Download cover to persistent location
   if (coverUrl) {
