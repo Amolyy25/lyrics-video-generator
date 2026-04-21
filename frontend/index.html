@@ -1,0 +1,1332 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#09090b" />
+    <title>Vidzo — Lyric Video Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #09090b;
+        --bg-1: #0f0f12;
+        --bg-2: #161619;
+        --border: #27272a;
+        --border-strong: #3f3f46;
+        --text: #fafafa;
+        --text-dim: #a1a1aa;
+        --text-faint: #71717a;
+        --accent: #a78bfa;
+        --accent-2: #6affb8;
+        --danger: #f87171;
+
+        --radius-sm: 8px;
+        --radius-md: 12px;
+        --radius-lg: 18px;
+
+        --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+          0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      * { box-sizing: border-box; }
+      *::-webkit-scrollbar { width: 8px; height: 8px; }
+      *::-webkit-scrollbar-track { background: transparent; }
+      *::-webkit-scrollbar-thumb {
+        background: var(--border-strong);
+        border-radius: 4px;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        min-height: 100svh;
+      }
+      body {
+        background:
+          radial-gradient(1200px 600px at 10% -10%, rgba(167, 139, 250, 0.08), transparent 60%),
+          radial-gradient(900px 500px at 90% 110%, rgba(106, 255, 184, 0.06), transparent 60%),
+          var(--bg);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 96px;
+      }
+
+      /* Header */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 48px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+      }
+      .logo .dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 0 16px rgba(167, 139, 250, 0.8);
+      }
+      .badge-pro {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+      }
+
+      /* Hero */
+      .hero {
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      .hero h1 {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        font-size: clamp(2.4rem, 6vw, 4rem);
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+        margin: 0 0 16px;
+      }
+      .hero h1 .gradient {
+        background: linear-gradient(90deg, #fff 0%, var(--accent) 50%, var(--accent-2) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero p {
+        color: var(--text-dim);
+        font-size: 1.05rem;
+        max-width: 580px;
+        margin: 0 auto;
+        line-height: 1.5;
+      }
+
+      /* Card */
+      .card {
+        background: linear-gradient(180deg, var(--bg-1) 0%, rgba(15, 15, 18, 0.6) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+      .card + .card { margin-top: 20px; }
+
+      /* Form grid */
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+      }
+      .field-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+        letter-spacing: 0.02em;
+      }
+      .field-label .hint {
+        font-weight: 400;
+        color: var(--text-faint);
+        font-size: 0.72rem;
+      }
+      .field-label .value {
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 600;
+        color: var(--accent-2);
+        font-size: 0.82rem;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-family: inherit;
+        font-size: 0.95rem;
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        transition: border-color 0.15s, background 0.15s;
+      }
+      input[type="text"]:focus,
+      input[type="number"]:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--bg-1);
+      }
+      input::placeholder { color: var(--text-faint); }
+
+      /* Options — collapsible */
+      .options-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 500;
+        padding: 14px 0 0;
+        margin: 0;
+        width: 100%;
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+      .options-toggle:hover { color: var(--text); transform: none; }
+      .options-toggle .chev {
+        transition: transform 0.2s;
+        font-size: 0.7rem;
+        color: var(--text-faint);
+      }
+      .options-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+      .options-body {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        display: grid;
+        gap: 20px;
+      }
+      .options-body.collapsed { display: none; }
+
+      /* Chip group */
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        background: var(--bg);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+        padding: 9px 13px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 500;
+        letter-spacing: 0;
+        transition: all 0.15s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+      }
+      .chip:hover {
+        color: var(--text);
+        border-color: var(--border-strong);
+        transform: none;
+      }
+      .chip.active {
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
+      }
+      .chip .swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      /* Toggle */
+      .toggle {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        width: 38px;
+        height: 22px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+      }
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        background: var(--text-dim);
+        border-radius: 50%;
+        transition: all 0.2s;
+      }
+      .toggle[aria-checked="true"] {
+        background: var(--accent-2);
+        border-color: var(--accent-2);
+      }
+      .toggle[aria-checked="true"]::after {
+        left: 18px;
+        background: var(--bg);
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .toggle-row .label-text {
+        font-size: 0.88rem;
+        color: var(--text);
+        font-weight: 500;
+      }
+      .toggle-row .label-sub {
+        font-size: 0.78rem;
+        color: var(--text-faint);
+        margin-top: 2px;
+      }
+
+      /* Range slider */
+      input[type="range"] {
+        width: 100%;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+      }
+      .offset-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .offset-row input[type="range"] { flex: 1; }
+      .offset-btn {
+        padding: 8px 10px;
+        background: var(--bg);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin: 0;
+        flex-shrink: 0;
+      }
+      .offset-btn:hover {
+        border-color: var(--border-strong);
+        color: var(--text);
+        transform: none;
+      }
+      .offset-hint {
+        margin: 8px 0 0;
+        font-size: 0.78rem;
+        color: var(--text-faint);
+      }
+      .offset-hint code {
+        background: var(--bg-2);
+        padding: 1px 6px;
+        border-radius: 4px;
+        color: var(--accent-2);
+        font-family: ui-monospace, monospace;
+        font-size: 0.85em;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        background: var(--accent-2);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        background: var(--accent-2);
+        border-radius: 50%;
+        cursor: pointer;
+        border: none;
+      }
+
+      /* Buttons */
+      button {
+        font-family: inherit;
+        cursor: pointer;
+        border: none;
+        border-radius: var(--radius-md);
+        padding: 14px 20px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: transform 0.15s, opacity 0.2s, background 0.15s;
+      }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      button:not(:disabled):hover { transform: translateY(-1px); }
+
+      .btn-primary {
+        width: 100%;
+        margin-top: 24px;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 120%);
+        color: var(--bg);
+        padding: 16px 24px;
+        font-size: 1rem;
+        font-weight: 700;
+        letter-spacing: -0.005em;
+        box-shadow: 0 8px 32px rgba(167, 139, 250, 0.25);
+      }
+      .btn-secondary {
+        background: var(--bg-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+      .btn-secondary:hover:not(:disabled) {
+        border-color: var(--border-strong);
+      }
+
+      /* Steps (loading) */
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .step {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        color: var(--text-faint);
+        transition: all 0.2s;
+      }
+      .step .icon {
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+      }
+      .step .label { flex: 1; font-size: 0.92rem; }
+      .step .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: none;
+      }
+      .step.active {
+        color: var(--text);
+        border-color: var(--accent);
+        background: rgba(167, 139, 250, 0.05);
+      }
+      .step.active .spinner { display: block; }
+      .step.done {
+        color: var(--accent-2);
+        border-color: rgba(106, 255, 184, 0.25);
+      }
+      .step.done .icon::before { content: "✓"; color: var(--accent-2); }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* Result */
+      .result-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) 1fr;
+        gap: 28px;
+        align-items: start;
+      }
+      .video-wrap {
+        position: relative;
+        background: #000;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        aspect-ratio: 9 / 16;
+      }
+      video {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .meta-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        flex-wrap: wrap;
+      }
+      .badge {
+        padding: 3px 10px;
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-faint);
+        font-weight: 500;
+      }
+      .badge.synced {
+        color: var(--accent-2);
+        border-color: rgba(106, 255, 184, 0.3);
+        background: rgba(106, 255, 184, 0.05);
+      }
+      .download-btn {
+        display: block;
+        text-align: center;
+        margin-top: 14px;
+        padding: 12px;
+        background: var(--bg-2);
+        color: var(--text);
+        text-decoration: none;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.15s;
+      }
+      .download-btn:hover {
+        border-color: var(--accent-2);
+        color: var(--accent-2);
+      }
+
+      .lyrics-pane {
+        max-height: 620px;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+      .lyrics-cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        font-size: 0.9rem;
+        line-height: 1.55;
+      }
+      .lyrics-col h4 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-faint);
+        margin: 0 0 12px;
+        position: sticky;
+        top: 0;
+        background: var(--bg-1);
+        padding: 4px 0;
+      }
+      .lyrics-col p {
+        margin: 0 0 6px;
+        padding: 4px 0;
+      }
+      .lyrics-col.fr p { color: var(--text); }
+      .lyrics-col.en p { color: var(--text-faint); }
+
+      /* Customize panel */
+      .action-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      /* Error card */
+      .error-card {
+        background: linear-gradient(180deg, #2a0e15 0%, #1a0a10 100%);
+        border: 1px solid var(--danger);
+        border-radius: var(--radius-lg);
+        padding: 0;
+        overflow: hidden;
+      }
+      .error-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 18px;
+        background: rgba(248, 113, 113, 0.08);
+        border-bottom: 1px solid rgba(248, 113, 113, 0.25);
+      }
+      .error-header .dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--danger);
+        box-shadow: 0 0 10px var(--danger);
+      }
+      .error-header h3 {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.9rem;
+        margin: 0;
+        color: #ffd9dc;
+      }
+      .error-header .stage {
+        margin-left: auto;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 3px 9px;
+        background: rgba(248, 113, 113, 0.2);
+        border: 1px solid rgba(248, 113, 113, 0.4);
+        border-radius: 999px;
+      }
+      .error-body {
+        padding: 16px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .error-message {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 0.85rem;
+        color: #ffd9dc;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(248, 113, 113, 0.25);
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      .error-hint {
+        font-size: 0.85rem;
+        color: var(--text-dim);
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-left: 3px solid var(--accent-2);
+        border-radius: 4px;
+      }
+      .error-hint code {
+        background: var(--bg-2);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--accent-2);
+        font-family: ui-monospace, monospace;
+        font-size: 0.82em;
+      }
+      .error-details {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+      }
+      .error-details summary {
+        cursor: pointer;
+        padding: 10px 14px;
+        font-size: 0.82rem;
+        color: var(--text-faint);
+        user-select: none;
+      }
+      .error-details pre {
+        margin: 0;
+        padding: 12px 14px;
+        border-top: 1px solid var(--border);
+        font-family: ui-monospace, monospace;
+        font-size: 0.75rem;
+        color: var(--text-faint);
+        white-space: pre-wrap;
+        max-height: 280px;
+        overflow: auto;
+      }
+
+      .hidden { display: none !important; }
+      .section-title {
+        font-family: "Space Grotesk", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 6px;
+      }
+      .section-sub {
+        font-size: 0.82rem;
+        color: var(--text-faint);
+        margin: 0 0 18px;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-2);
+        border: 1px solid var(--danger);
+        color: #ffd9dc;
+        padding: 12px 16px;
+        border-radius: var(--radius-md);
+        font-size: 0.88rem;
+        max-width: 340px;
+        transform: translateX(calc(100% + 40px));
+        transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        z-index: 100;
+      }
+      .toast.show { transform: translateX(0); }
+
+      /* ---- Responsive ---- */
+      @media (max-width: 820px) {
+        .container { padding: 20px 16px 80px; }
+        header { margin-bottom: 32px; }
+        .hero { margin-bottom: 28px; }
+        .card { padding: 20px; }
+        .result-grid { grid-template-columns: 1fr; }
+        .lyrics-cols { grid-template-columns: 1fr; }
+        .lyrics-col.en { display: none; } /* hide EN on mobile to save space */
+        .video-wrap { max-width: 320px; margin: 0 auto; }
+      }
+      @media (max-width: 560px) {
+        .field-grid { grid-template-columns: 1fr; }
+        .action-row { grid-template-columns: 1fr; }
+        .hero h1 { font-size: 2.2rem; }
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 56px;
+        color: var(--text-faint);
+        font-size: 0.8rem;
+      }
+      footer a {
+        color: var(--text-dim);
+        text-decoration: none;
+        border-bottom: 1px dotted var(--border-strong);
+      }
+      footer a:hover { color: var(--accent-2); border-color: var(--accent-2); }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <span class="dot"></span>
+          <span>vidzo</span>
+        </div>
+        <span class="badge-pro">beta</span>
+      </header>
+
+      <section class="hero">
+        <h1>
+          Lyrics en
+          <span class="gradient">français rap</span>
+          <br />sur vidéo TikTok
+        </h1>
+        <p>
+          Génère un lyric-video aesthetic à partir d'un artiste + titre.
+          Traduction rap FR, vinyle animé, sync parole/audio.
+        </p>
+      </section>
+
+      <!-- Main form -->
+      <section class="card">
+        <form id="genForm">
+          <div class="field-grid">
+            <div class="field">
+              <label class="field-label" for="artist">
+                Artiste
+              </label>
+              <input id="artist" type="text" placeholder="Central Cee" required autocomplete="off" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="title">
+                Titre
+              </label>
+              <input id="title" type="text" placeholder="Obsessed With You" required autocomplete="off" />
+            </div>
+          </div>
+
+          <!-- Options toggle -->
+          <button type="button" class="options-toggle" id="optionsToggle" aria-expanded="true">
+            <span>Options avancées</span>
+            <span class="chev">▼</span>
+          </button>
+
+          <div class="options-body" id="optionsBody">
+            <!-- Duration + start time -->
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label">
+                  Durée
+                  <span class="value" id="durationValue">15s</span>
+                </label>
+                <div class="chip-row" id="durationPresets" style="margin-bottom: 10px">
+                  <button type="button" class="chip" data-preset="10">10s</button>
+                  <button type="button" class="chip active" data-preset="15">15s</button>
+                  <button type="button" class="chip" data-preset="20">20s</button>
+                  <button type="button" class="chip" data-preset="30">30s</button>
+                  <button type="button" class="chip" data-preset="45">45s</button>
+                  <button type="button" class="chip" data-preset="60">60s</button>
+                </div>
+                <input id="duration" type="range" min="5" max="90" step="1" value="15" />
+              </div>
+
+              <div class="field">
+                <label class="field-label" for="startTime">
+                  Début (auto si vide)
+                  <span class="hint">format mm:ss ou secondes</span>
+                </label>
+                <input id="startTime" type="text" placeholder="auto · 0:40 · 90" autocomplete="off" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">
+                Décalage des paroles
+                <span class="value" id="lyricOffsetValue">0,0s</span>
+              </label>
+              <div class="offset-row">
+                <button type="button" class="offset-btn" data-step="-0.5">−0,5</button>
+                <button type="button" class="offset-btn" data-step="-0.1">−0,1</button>
+                <input id="lyricOffset" type="range" min="-5" max="5" step="0.1" value="0" />
+                <button type="button" class="offset-btn" data-step="0.1">+0,1</button>
+                <button type="button" class="offset-btn" data-step="0.5">+0,5</button>
+              </div>
+              <p class="offset-hint">
+                Si les paroles arrivent trop tôt → <code>+</code>. Trop tard → <code>−</code>.
+              </p>
+            </div>
+
+            <!-- Text color -->
+            <div class="field">
+              <label class="field-label">
+                Couleur du texte
+                <span class="hint">flat ou dégradé</span>
+              </label>
+              <div class="chip-row" id="colorChips">
+                <button type="button" class="chip active" data-value="white">
+                  <span class="swatch" style="background:#fff"></span>Blanc
+                </button>
+                <button type="button" class="chip" data-value="neon">
+                  <span class="swatch" style="background:#6affb8"></span>Neon
+                </button>
+                <button type="button" class="chip" data-value="pink">
+                  <span class="swatch" style="background:#ff3dcf"></span>Pink
+                </button>
+                <button type="button" class="chip" data-value="cyan">
+                  <span class="swatch" style="background:#5ad8ff"></span>Cyan
+                </button>
+                <button type="button" class="chip" data-value="yellow">
+                  <span class="swatch" style="background:#ffe45c"></span>Yellow
+                </button>
+                <button type="button" class="chip" data-value="red">
+                  <span class="swatch" style="background:#ff4557"></span>Red
+                </button>
+                <button type="button" class="chip" data-value="sunset">
+                  <span class="swatch" style="background:linear-gradient(135deg,#ff3dcf,#ffe45c)"></span>Sunset
+                </button>
+                <button type="button" class="chip" data-value="ocean">
+                  <span class="swatch" style="background:linear-gradient(135deg,#5ad8ff,#a78bfa)"></span>Ocean
+                </button>
+                <button type="button" class="chip" data-value="matrix">
+                  <span class="swatch" style="background:linear-gradient(135deg,#6affb8,#5ad8ff)"></span>Matrix
+                </button>
+                <button type="button" class="chip" data-value="fire">
+                  <span class="swatch" style="background:linear-gradient(135deg,#ff4557,#ffe45c)"></span>Fire
+                </button>
+                <button type="button" class="chip" data-value="holo">
+                  <span class="swatch" style="background:linear-gradient(135deg,#ff3dcf,#5ad8ff)"></span>Holo
+                </button>
+                <button type="button" class="chip" data-value="gold">
+                  <span class="swatch" style="background:linear-gradient(135deg,#ffe45c,#ff9a3c)"></span>Gold
+                </button>
+                <button type="button" class="chip" data-value="ice">
+                  <span class="swatch" style="background:linear-gradient(135deg,#fff,#5ad8ff)"></span>Ice
+                </button>
+                <button type="button" class="chip" data-value="purple">
+                  <span class="swatch" style="background:linear-gradient(135deg,#a78bfa,#ff3dcf)"></span>Purple
+                </button>
+              </div>
+            </div>
+
+            <!-- Speed + Animation -->
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label">Vitesse des mots</label>
+                <div class="chip-row" id="speedChips">
+                  <button type="button" class="chip" data-value="slow">Lent</button>
+                  <button type="button" class="chip active" data-value="normal">Normal</button>
+                  <button type="button" class="chip" data-value="fast">Rapide</button>
+                  <button type="button" class="chip" data-value="turbo">Turbo</button>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Style d'animation</label>
+                <div class="chip-row" id="animChips">
+                  <button type="button" class="chip active" data-value="smooth">Smooth</button>
+                  <button type="button" class="chip" data-value="punchy">Punchy</button>
+                  <button type="button" class="chip" data-value="flat">Flat</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Toggles -->
+            <div class="toggle-row">
+              <div>
+                <div class="label-text">Effet glow</div>
+                <div class="label-sub">Halo lumineux autour du texte</div>
+              </div>
+              <button type="button" class="toggle" id="glowToggle" role="switch" aria-checked="true"></button>
+            </div>
+
+            <div class="toggle-row">
+              <div>
+                <div class="label-text">Traduire les paroles</div>
+                <div class="label-sub">Désactive si le morceau est déjà en français</div>
+              </div>
+              <button type="button" class="toggle" id="translateToggle" role="switch" aria-checked="true"></button>
+            </div>
+
+            <div class="field" id="translationStyleField">
+              <label class="field-label">
+                Style de traduction
+                <span class="hint">registre & vocabulaire</span>
+              </label>
+              <div class="chip-row" id="translationStyleChips">
+                <button type="button" class="chip active" data-value="rap-street">Rap street</button>
+                <button type="button" class="chip" data-value="rap-melodic">Mélodique</button>
+                <button type="button" class="chip" data-value="romantic">Romantique</button>
+                <button type="button" class="chip" data-value="poetic">Poétique</button>
+                <button type="button" class="chip" data-value="trap">Trap</button>
+                <button type="button" class="chip" data-value="pop">Pop</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submitBtn">
+            Générer la vidéo
+          </button>
+        </form>
+      </section>
+
+      <!-- Loading -->
+      <section id="stepsCard" class="card hidden">
+        <div class="steps" id="steps">
+          <div class="step" data-step="download">
+            <span class="icon">↓</span>
+            <span class="label">Téléchargement de l'audio</span>
+            <span class="spinner"></span>
+          </div>
+          <div class="step" data-step="lyrics">
+            <span class="icon">♪</span>
+            <span class="label">Récupération des paroles synchronisées</span>
+            <span class="spinner"></span>
+          </div>
+          <div class="step" data-step="translate">
+            <span class="icon">⇆</span>
+            <span class="label">Traduction en français rap</span>
+            <span class="spinner"></span>
+          </div>
+          <div class="step" data-step="video">
+            <span class="icon">▶</span>
+            <span class="label">Assemblage de la vidéo</span>
+            <span class="spinner"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Error -->
+      <section id="errorCard" class="error-card hidden">
+        <div class="error-header">
+          <span class="dot"></span>
+          <h3>Erreur de génération</h3>
+          <span class="stage" id="errorStage">unknown</span>
+        </div>
+        <div class="error-body">
+          <div class="error-message" id="errorMessage"></div>
+          <div class="error-hint" id="errorHint"></div>
+          <details class="error-details" id="errorStackWrap">
+            <summary>Stack trace</summary>
+            <pre id="errorStack"></pre>
+          </details>
+        </div>
+      </section>
+
+      <!-- Result -->
+      <section id="resultCard" class="card hidden">
+        <div class="result-grid">
+          <div>
+            <div class="meta-row">
+              <span id="metaTitle"></span>
+              <span id="syncBadge" class="badge"></span>
+            </div>
+            <div class="video-wrap">
+              <video id="videoPlayer" controls playsinline></video>
+            </div>
+            <a id="downloadLink" class="download-btn" download>⬇ Télécharger</a>
+          </div>
+          <div>
+            <h3 class="section-title">Paroles</h3>
+            <p class="section-sub">Original et traduction rap FR, côte à côte.</p>
+            <div class="lyrics-pane">
+              <div class="lyrics-cols">
+                <div class="lyrics-col en">
+                  <h4>English</h4>
+                  <div id="lyricsEn"></div>
+                </div>
+                <div class="lyrics-col fr">
+                  <h4>Français</h4>
+                  <div id="lyricsFr"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Customize after result -->
+      <section id="customizeCard" class="card hidden">
+        <h3 class="section-title">Itérer sans retélécharger</h3>
+        <p class="section-sub">
+          Modifie les options ci-dessus puis régénère — l'audio et les traductions sont conservés en cache.
+        </p>
+        <div class="action-row">
+          <button type="button" class="btn-secondary" id="retranslateBtn">
+            🔁 Améliorer la traduction
+          </button>
+          <button type="button" class="btn-primary" id="regenerateBtn" style="margin-top: 0">
+            🎬 Régénérer
+          </button>
+        </div>
+      </section>
+
+      <footer>
+        vidzo · powered by lrclib, yt-dlp, ffmpeg &amp; Gemini/Grok
+      </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+      // ===== Config =====
+      // In production on Vercel, set window.BACKEND_URL via an injected script tag.
+      // Otherwise defaults to same-origin (backend served with express).
+      const BACKEND_URL = window.BACKEND_URL || "";
+
+      // ===== Elements =====
+      const form = document.getElementById("genForm");
+      const submitBtn = document.getElementById("submitBtn");
+      const stepsCard = document.getElementById("stepsCard");
+      const resultCard = document.getElementById("resultCard");
+      const customizeCard = document.getElementById("customizeCard");
+      const toast = document.getElementById("toast");
+
+      const durationInput = document.getElementById("duration");
+      const durationValue = document.getElementById("durationValue");
+      const durationPresets = document.getElementById("durationPresets");
+      const startTimeInput = document.getElementById("startTime");
+      const lyricOffsetInput = document.getElementById("lyricOffset");
+      const lyricOffsetValue = document.getElementById("lyricOffsetValue");
+      const glowToggle = document.getElementById("glowToggle");
+      const translateToggle = document.getElementById("translateToggle");
+
+      const optionsToggle = document.getElementById("optionsToggle");
+      const optionsBody = document.getElementById("optionsBody");
+
+      const regenerateBtn = document.getElementById("regenerateBtn");
+      const retranslateBtn = document.getElementById("retranslateBtn");
+
+      // ===== State =====
+      const style = {
+        textColor: "white",
+        revealSpeed: "normal",
+        animation: "smooth",
+        glow: true,
+      };
+      let translate = true;
+      let translationStyle = "rap-street";
+      let currentBase = null;
+
+      // ===== Duration handling =====
+      function updateDuration(val) {
+        const v = Math.max(5, Math.min(90, parseInt(val, 10) || 15));
+        durationInput.value = v;
+        durationValue.textContent = `${v}s`;
+        durationPresets.querySelectorAll(".chip").forEach((b) => {
+          b.classList.toggle("active", parseInt(b.dataset.preset, 10) === v);
+        });
+      }
+      durationInput.addEventListener("input", (e) => updateDuration(e.target.value));
+      durationPresets.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-preset]");
+        if (btn) updateDuration(btn.dataset.preset);
+      });
+
+      // ===== Lyric offset handling =====
+      function updateLyricOffset(val) {
+        const v = Math.max(-5, Math.min(5, Math.round(parseFloat(val) * 10) / 10));
+        lyricOffsetInput.value = v;
+        const sign = v > 0 ? "+" : "";
+        lyricOffsetValue.textContent = `${sign}${v.toFixed(1).replace(".", ",")}s`;
+      }
+      lyricOffsetInput.addEventListener("input", (e) => updateLyricOffset(e.target.value));
+      document.querySelectorAll(".offset-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const step = parseFloat(btn.dataset.step);
+          updateLyricOffset(parseFloat(lyricOffsetInput.value) + step);
+        });
+      });
+
+      // ===== Chip groups =====
+      function wireChips(containerId, key) {
+        const el = document.getElementById(containerId);
+        el.addEventListener("click", (e) => {
+          const btn = e.target.closest(".chip[data-value]");
+          if (!btn) return;
+          el.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+          btn.classList.add("active");
+          style[key] = btn.dataset.value;
+        });
+      }
+      wireChips("colorChips", "textColor");
+      wireChips("speedChips", "revealSpeed");
+      wireChips("animChips", "animation");
+
+      // Translation style (not in `style` object — separate scalar)
+      const translationStyleChips = document.getElementById("translationStyleChips");
+      translationStyleChips.addEventListener("click", (e) => {
+        const btn = e.target.closest(".chip[data-value]");
+        if (!btn) return;
+        translationStyleChips.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+        btn.classList.add("active");
+        translationStyle = btn.dataset.value;
+      });
+      const translationStyleField = document.getElementById("translationStyleField");
+
+      // ===== Toggles =====
+      function wireToggle(el, onChange) {
+        el.addEventListener("click", () => {
+          const next = el.getAttribute("aria-checked") !== "true";
+          el.setAttribute("aria-checked", String(next));
+          onChange(next);
+        });
+      }
+      wireToggle(glowToggle, (v) => { style.glow = v; });
+      wireToggle(translateToggle, (v) => {
+        translate = v;
+        // Retranslate button and style selector become useless if translation is off
+        retranslateBtn.disabled = !v;
+        retranslateBtn.style.opacity = v ? "1" : "0.4";
+        translationStyleField.style.opacity = v ? "1" : "0.4";
+        translationStyleField.style.pointerEvents = v ? "" : "none";
+      });
+
+      // ===== Options toggle =====
+      optionsToggle.addEventListener("click", () => {
+        const expanded = optionsToggle.getAttribute("aria-expanded") === "true";
+        optionsToggle.setAttribute("aria-expanded", String(!expanded));
+        optionsBody.classList.toggle("collapsed", expanded);
+      });
+
+      // ===== Start time parsing =====
+      function parseStartTime(raw) {
+        if (!raw) return null;
+        const trimmed = String(raw).trim();
+        if (!trimmed || trimmed.toLowerCase() === "auto") return null;
+        if (trimmed.includes(":")) {
+          const [m, s] = trimmed.split(":").map((n) => parseFloat(n));
+          if (!Number.isFinite(m) || !Number.isFinite(s)) return null;
+          return m * 60 + s;
+        }
+        const n = parseFloat(trimmed);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      // ===== Loading progress =====
+      const STEP_ORDER = ["download", "lyrics", "translate", "video"];
+      function setStep(name, state) {
+        const el = document.querySelector(`[data-step="${name}"]`);
+        if (!el) return;
+        el.classList.remove("active", "done");
+        if (state) el.classList.add(state);
+      }
+      function resetSteps() { STEP_ORDER.forEach((s) => setStep(s, null)); }
+      function fakeProgress(intervalMs = 2800) {
+        let i = 0;
+        setStep(STEP_ORDER[0], "active");
+        const iv = setInterval(() => {
+          setStep(STEP_ORDER[i], "done");
+          i++;
+          if (i < STEP_ORDER.length) setStep(STEP_ORDER[i], "active");
+          else clearInterval(iv);
+        }, intervalMs);
+        return () => {
+          clearInterval(iv);
+          STEP_ORDER.forEach((s) => setStep(s, "done"));
+        };
+      }
+
+      // ===== Toast =====
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 5000);
+      }
+
+      // ===== Error panel =====
+      const STAGE_HINTS = {
+        download: "Étape <code>download</code> (yt-dlp). Vérifie que <code>yt-dlp</code> est installé et à jour.",
+        lyrics: "Étape <code>lyrics</code> (lrclib.net). Vérifie l'orthographe exacte de l'artiste et du titre.",
+        translate: "Étape <code>translate</code>. Vérifie <code>GEMINI_API_KEY</code> et <code>GROK_API</code> dans <code>.env</code>.",
+        video: "Étape <code>video</code> (ffmpeg). Vérifie que <code>ffmpeg</code> est installé.",
+        unknown: "Regarde les logs du backend, l'erreur y est affichée dans un encadré.",
+      };
+      function showError({ message, stage, stack }) {
+        document.getElementById("errorMessage").textContent = message || "Erreur inconnue";
+        document.getElementById("errorStage").textContent = stage || "unknown";
+        document.getElementById("errorHint").innerHTML = STAGE_HINTS[stage] || STAGE_HINTS.unknown;
+        const sw = document.getElementById("errorStackWrap");
+        const se = document.getElementById("errorStack");
+        if (stack) { se.textContent = stack; sw.classList.remove("hidden"); }
+        else { sw.classList.add("hidden"); }
+        const card = document.getElementById("errorCard");
+        card.classList.remove("hidden");
+        card.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      function hideError() { document.getElementById("errorCard").classList.add("hidden"); }
+
+      // ===== Render result =====
+      function renderLyrics(lyrics, translated) {
+        const en = document.getElementById("lyricsEn");
+        const fr = document.getElementById("lyricsFr");
+        en.innerHTML = ""; fr.innerHTML = "";
+        lyrics.forEach((l, i) => {
+          const p1 = document.createElement("p");
+          p1.textContent = l.text;
+          en.appendChild(p1);
+          const p2 = document.createElement("p");
+          p2.textContent = (translated[i] && translated[i].text) || "";
+          fr.appendChild(p2);
+        });
+      }
+      function applyResultPayload(data) {
+        currentBase = data.base || currentBase;
+        document.getElementById("metaTitle").textContent = data.youtubeTitle || "";
+        const badge = document.getElementById("syncBadge");
+        if (data.hasSyncedLyrics) { badge.textContent = "Synced"; badge.classList.add("synced"); }
+        else { badge.textContent = "Unsynced"; badge.classList.remove("synced"); }
+        const player = document.getElementById("videoPlayer");
+        player.src = BACKEND_URL + data.videoUrl;
+        document.getElementById("downloadLink").href = BACKEND_URL + data.videoUrl;
+        renderLyrics(data.lyrics || [], data.lyricsTranslated || []);
+
+        // Hide EN column when translation is off (both cols would be identical)
+        const enCol = document.querySelector(".lyrics-col.en");
+        if (enCol) enCol.classList.toggle("hidden", data.translated === false);
+        const frHeader = document.querySelector(".lyrics-col.fr h4");
+        if (frHeader) frHeader.textContent = data.translated === false ? "Paroles" : "Français";
+
+        resultCard.classList.remove("hidden");
+        customizeCard.classList.remove("hidden");
+      }
+
+      // ===== API calls =====
+      async function apiCall(endpoint, body) {
+        const res = await fetch(BACKEND_URL + endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const err = new Error(data.error || `HTTP ${res.status}`);
+          err.stage = data.stage;
+          err.stack = data.stack;
+          throw err;
+        }
+        return data;
+      }
+
+      // ===== Submit =====
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const artist = document.getElementById("artist").value.trim();
+        const title = document.getElementById("title").value.trim();
+        if (!artist || !title) return;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Génération en cours…";
+        resultCard.classList.add("hidden");
+        customizeCard.classList.add("hidden");
+        hideError();
+        stepsCard.classList.remove("hidden");
+        resetSteps();
+        const stopProgress = fakeProgress();
+
+        try {
+          const duration = parseInt(durationInput.value, 10) || 15;
+          const startTime = parseStartTime(startTimeInput.value);
+          const data = await apiCall("/api/generate", {
+            artist, title, duration, startTime,
+            lyricOffset: parseFloat(lyricOffsetInput.value) || 0,
+            style, translate, translationStyle,
+          });
+          stopProgress();
+          applyResultPayload(data);
+          resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (err) {
+          stopProgress();
+          stepsCard.classList.add("hidden");
+          showError({ message: err.message, stage: err.stage || "unknown", stack: err.stack });
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Générer la vidéo";
+        }
+      });
+
+      // ===== Regenerate =====
+      async function runRegenerate(endpoint) {
+        if (!currentBase) return;
+        const btns = [regenerateBtn, retranslateBtn];
+        const originals = btns.map((b) => b.textContent);
+        btns.forEach((b) => { b.disabled = true; });
+        regenerateBtn.textContent = "⏳ En cours…";
+        retranslateBtn.textContent = "⏳ En cours…";
+        hideError();
+
+        try {
+          const duration = parseInt(durationInput.value, 10) || 15;
+          const startTime = parseStartTime(startTimeInput.value);
+          const data = await apiCall(endpoint, {
+            base: currentBase, duration, startTime,
+            lyricOffset: parseFloat(lyricOffsetInput.value) || 0,
+            style, translate, translationStyle,
+          });
+          applyResultPayload(data);
+          document.getElementById("videoPlayer").scrollIntoView({
+            behavior: "smooth", block: "center",
+          });
+        } catch (err) {
+          showError({ message: err.message, stage: err.stage || "unknown", stack: err.stack });
+        } finally {
+          btns.forEach((b, i) => { b.disabled = false; b.textContent = originals[i]; });
+        }
+      }
+      regenerateBtn.addEventListener("click", () => runRegenerate("/api/regenerate"));
+      retranslateBtn.addEventListener("click", () => runRegenerate("/api/retranslate"));
+    </script>
+  </body>
+</html>
